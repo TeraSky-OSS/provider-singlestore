@@ -1,0 +1,19 @@
+apiVersion: singlestore.terasky.com/v1alpha1
+kind: WorkspaceGroup
+metadata:
+  annotations:
+    meta.upbound.io/example-id: singlestore/v1alpha1/workspacegroup
+  labels:
+    testing.upbound.io/example-name: this
+  name: this
+spec:
+  forProvider:
+    adminPasswordSecretRef:
+      key: example-key
+      name: example-secret
+      namespace: upbound-system
+    expiresAt: "2222-01-01T00:00:00Z"
+    firewallRanges:
+    - 0.0.0.0/0
+    name: group
+    regionId: ${data.singlestoredb_regions.all.regions.0.id}

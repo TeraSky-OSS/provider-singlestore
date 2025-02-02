@@ -1,4 +1,4 @@
-module github.com/upbound/upjet-provider-template
+module github.com/terasky-oss/provider-singlestore
 
 go 1.21
 

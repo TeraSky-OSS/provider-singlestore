@@ -4,18 +4,18 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: resources.null.template.upbound.io
+  name: workspacegroups.singlestore.terasky.com
 spec:
-  group: null.template.upbound.io
+  group: singlestore.terasky.com
   names:
     categories:
     - crossplane
     - managed
-    - template
-    kind: Resource
-    listKind: ResourceList
-    plural: resources
-    singular: resource
+    - singlestore
+    kind: WorkspaceGroup
+    listKind: WorkspaceGroupList
+    plural: workspacegroups
+    singular: workspacegroup
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -34,10 +34,8 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Resource is the Schema for the Resources API. The null_resource
-          resource implements the standard resource lifecycle but takes no further
-          action.hashicorp. The triggers argument allows specifying an arbitrary set
-          of values that, when changed, will cause the resource to be replaced.
+        description: WorkspaceGroup is the Schema for the WorkspaceGroups API. Manage
+          SingleStoreDB workspace groups with this resource.
         properties:
           apiVersion:
             description: |-
@@ -57,7 +55,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: ResourceSpec defines the desired state of Resource
+            description: WorkspaceGroupSpec defines the desired state of WorkspaceGroup
             properties:
               deletionPolicy:
                 default: Delete
@@ -75,14 +73,47 @@ spec:
                 type: string
               forProvider:
                 properties:
-                  triggers:
-                    additionalProperties:
-                      type: string
+                  adminPasswordSecretRef:
                     description: |-
-                      running any associated provisioners.
-                      A map of arbitrary strings that, when changed, will force the null resource to be replaced, re-running any associated provisioners.
+                      (String, Sensitive) The admin SQL user password for the workspace group. If not provided, the server will automatically generate a secure password. Please note that updates to the admin password might take a brief moment to become effective.
+                      The admin SQL user password for the workspace group. If not provided, the server will automatically generate a secure password. Please note that updates to the admin password might take a brief moment to become effective.
+                    properties:
+                      key:
+                        description: The key to select.
+                        type: string
+                      name:
+                        description: Name of the secret.
+                        type: string
+                      namespace:
+                        description: Namespace of the secret.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
                     type: object
-                    x-kubernetes-map-type: granular
+                  expiresAt:
+                    description: |-
+                      01-02T15:04:05Z".
+                      The expiration timestamp of the workspace group. If not specified, the workspace group never expires. Upon expiration, the workspace group is terminated and all its data is lost. Set the expiration time as an RFC3339 UTC timestamp, e.g., "2221-01-02T15:04:05Z".
+                    type: string
+                  firewallRanges:
+                    description: |-
+                      (List of String) List of allowed CIDR ranges. An empty list blocks all inbound requests. For unrestricted traffic, use ["0.0.0.0/0"]. Note that updates to firewall ranges may take a brief moment to become effective.
+                      List of allowed CIDR ranges. An empty list blocks all inbound requests. For unrestricted traffic, use ["0.0.0.0/0"]. Note that updates to firewall ranges may take a brief moment to become effective.
+                    items:
+                      type: string
+                    type: array
+                  name:
+                    description: |-
+                      (String) Name of the workspace group.
+                      Name of the workspace group.
+                    type: string
+                  regionId:
+                    description: |-
+                      (String) The unique identifier of the region where the workspace group is to be created.
+                      The unique identifier of the region where the workspace group is to be created.
+                    type: string
                 type: object
               initProvider:
                 description: |-
@@ -97,14 +128,47 @@ spec:
                   for example because of an external controller is managing them, like an
                   autoscaler.
                 properties:
-                  triggers:
-                    additionalProperties:
-                      type: string
+                  adminPasswordSecretRef:
                     description: |-
-                      running any associated provisioners.
-                      A map of arbitrary strings that, when changed, will force the null resource to be replaced, re-running any associated provisioners.
+                      (String, Sensitive) The admin SQL user password for the workspace group. If not provided, the server will automatically generate a secure password. Please note that updates to the admin password might take a brief moment to become effective.
+                      The admin SQL user password for the workspace group. If not provided, the server will automatically generate a secure password. Please note that updates to the admin password might take a brief moment to become effective.
+                    properties:
+                      key:
+                        description: The key to select.
+                        type: string
+                      name:
+                        description: Name of the secret.
+                        type: string
+                      namespace:
+                        description: Namespace of the secret.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
                     type: object
-                    x-kubernetes-map-type: granular
+                  expiresAt:
+                    description: |-
+                      01-02T15:04:05Z".
+                      The expiration timestamp of the workspace group. If not specified, the workspace group never expires. Upon expiration, the workspace group is terminated and all its data is lost. Set the expiration time as an RFC3339 UTC timestamp, e.g., "2221-01-02T15:04:05Z".
+                    type: string
+                  firewallRanges:
+                    description: |-
+                      (List of String) List of allowed CIDR ranges. An empty list blocks all inbound requests. For unrestricted traffic, use ["0.0.0.0/0"]. Note that updates to firewall ranges may take a brief moment to become effective.
+                      List of allowed CIDR ranges. An empty list blocks all inbound requests. For unrestricted traffic, use ["0.0.0.0/0"]. Note that updates to firewall ranges may take a brief moment to become effective.
+                    items:
+                      type: string
+                    type: array
+                  name:
+                    description: |-
+                      (String) Name of the workspace group.
+                      Name of the workspace group.
+                    type: string
+                  regionId:
+                    description: |-
+                      (String) The unique identifier of the region where the workspace group is to be created.
+                      The unique identifier of the region where the workspace group is to be created.
+                    type: string
                 type: object
               managementPolicies:
                 default:
@@ -273,23 +337,54 @@ spec:
             required:
             - forProvider
             type: object
+            x-kubernetes-validations:
+            - message: spec.forProvider.firewallRanges is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.firewallRanges)
+                || (has(self.initProvider) && has(self.initProvider.firewallRanges))'
+            - message: spec.forProvider.name is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.name)
+                || (has(self.initProvider) && has(self.initProvider.name))'
+            - message: spec.forProvider.regionId is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.regionId)
+                || (has(self.initProvider) && has(self.initProvider.regionId))'
           status:
-            description: ResourceStatus defines the observed state of Resource.
+            description: WorkspaceGroupStatus defines the observed state of WorkspaceGroup.
             properties:
               atProvider:
                 properties:
-                  id:
-                    description: (String) This is set to a random value at create
-                      time.
-                    type: string
-                  triggers:
-                    additionalProperties:
-                      type: string
+                  createdAt:
                     description: |-
-                      running any associated provisioners.
-                      A map of arbitrary strings that, when changed, will force the null resource to be replaced, re-running any associated provisioners.
-                    type: object
-                    x-kubernetes-map-type: granular
+                      (String) The timestamp when the workspace was created.
+                      The timestamp when the workspace was created.
+                    type: string
+                  expiresAt:
+                    description: |-
+                      01-02T15:04:05Z".
+                      The expiration timestamp of the workspace group. If not specified, the workspace group never expires. Upon expiration, the workspace group is terminated and all its data is lost. Set the expiration time as an RFC3339 UTC timestamp, e.g., "2221-01-02T15:04:05Z".
+                    type: string
+                  firewallRanges:
+                    description: |-
+                      (List of String) List of allowed CIDR ranges. An empty list blocks all inbound requests. For unrestricted traffic, use ["0.0.0.0/0"]. Note that updates to firewall ranges may take a brief moment to become effective.
+                      List of allowed CIDR ranges. An empty list blocks all inbound requests. For unrestricted traffic, use ["0.0.0.0/0"]. Note that updates to firewall ranges may take a brief moment to become effective.
+                    items:
+                      type: string
+                    type: array
+                  id:
+                    description: (String) The unique identifier of the workspace group.
+                    type: string
+                  name:
+                    description: |-
+                      (String) Name of the workspace group.
+                      Name of the workspace group.
+                    type: string
+                  regionId:
+                    description: |-
+                      (String) The unique identifier of the region where the workspace group is to be created.
+                      The unique identifier of the region where the workspace group is to be created.
+                    type: string
                 type: object
               conditions:
                 description: Conditions of the resource.
