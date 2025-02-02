@@ -10,8 +10,8 @@ import (
 
 	ujconfig "github.com/crossplane/upjet/pkg/config"
 
-	"github.com/terasky-oss/provider-singlestore/config/workspacegroup"
 	"github.com/terasky-oss/provider-singlestore/config/workspace"
+	"github.com/terasky-oss/provider-singlestore/config/workspacegroup"
 )
 
 const (
